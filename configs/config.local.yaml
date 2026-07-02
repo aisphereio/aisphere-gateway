@@ -1,0 +1,72 @@
+﻿service:
+  name: gateway-service
+  version: dev
+  env: dev
+
+server:
+  http:
+    network: tcp
+    addr: 0.0.0.0:18000
+    timeout: 10000000000
+    cors:
+      enabled: true
+      allow_origins: ["*"]
+      allow_methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+      allow_headers: ["*"]
+  grpc:
+    network: tcp
+    addr: 0.0.0.0:19000
+    timeout: 10000000000
+
+log:
+  level: debug
+  format: console
+  add_source: true
+  access_log:
+    enabled: true
+    slow_threshold: 500000000
+
+data:
+  database:
+    enabled: false
+  cache:
+    enabled: false
+  object_store:
+    enabled: false
+
+security:
+  authn:
+    enabled: false
+  authz:
+    enabled: false
+
+gateway:
+  route_registry:
+    provider: etcd
+    prefix: /aisphere/kernel/routes/dev
+    endpoints:
+      - 36.137.200.194:30086
+
+  hosts:
+    i.a.m.auth-service.aisphere: 127.0.0.1:19080
+    i.a.m.directory-service.aisphere: 127.0.0.1:19080
+    i.a.m.permission-service.aisphere: 127.0.0.1:19080
+    iam-service.aisphere: 127.0.0.1:19080
+
+  upstreams:
+    iam-service:
+      target: 127.0.0.1:19080
+      insecure: true
+
+audit:
+  enabled: true
+  backend: memory
+
+metrics:
+  enabled: true
+  addr: 127.0.0.1:19100
+  path: /metrics
+
+dtm:
+  enabled: false
+

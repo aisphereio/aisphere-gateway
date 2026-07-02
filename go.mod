@@ -11,8 +11,8 @@ require (
 )
 
 require (
-	aisphere-iam v0.0.0
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20260415201107-50325440f8f2.1 // indirect
+	github.com/aisphereio/aisphere-iam v0.0.0
 	github.com/authzed/authzed-go v1.10.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/casdoor/casdoor-go-sdk v1.46.0 // indirect
@@ -100,4 +100,4 @@ require (
 	gorm.io/gorm v1.31.2 // indirect
 )
 
-replace aisphere-iam => ../aisphere-iam
+replace github.com/aisphereio/aisphere-iam => ../aisphere-iam

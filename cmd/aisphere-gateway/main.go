@@ -5,7 +5,6 @@ import (
 	"flag"
 	"time"
 
-	iamv1 "aisphere-iam/api/iam/v1"
 	kernel "github.com/aisphereio/kernel"
 	"github.com/aisphereio/kernel/configx"
 	configenv "github.com/aisphereio/kernel/configx/env"
@@ -19,12 +18,13 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 
-	"aisphere-gateway/internal/conf"
-	"aisphere-gateway/internal/data"
-	"aisphere-gateway/internal/dispatch"
-	"aisphere-gateway/internal/registry"
-	"aisphere-gateway/internal/server"
-	"aisphere-gateway/internal/service"
+	"github.com/aisphereio/aisphere-gateway/internal/conf"
+	"github.com/aisphereio/aisphere-gateway/internal/data"
+	"github.com/aisphereio/aisphere-gateway/internal/dispatch"
+	"github.com/aisphereio/aisphere-gateway/internal/registry"
+	"github.com/aisphereio/aisphere-gateway/internal/server"
+	"github.com/aisphereio/aisphere-gateway/internal/service"
+	iamv1 "github.com/aisphereio/aisphere-iam/api/iam/v1"
 )
 
 var (

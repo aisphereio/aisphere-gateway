@@ -791,7 +791,7 @@ const file_gateway_v1_gateway_proto_rawDesc = "" +
 	"\x06reload\x12\x0egateway:routes\x1a\x0fgateway-service \x01\x1a!\b\x01\x12\x15gateway.routes.reload\x1a\x06medium\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/v1/gateway/routes/reload\x12\xe6\x01\n" +
 	"\x11GetUpstreamHealth\x12$.gateway.v1.GetUpstreamHealthRequest\x1a\".gateway.v1.GetUpstreamHealthReply\"\x86\x01\x92\xf4\x18[\b\x05\x125\n" +
 	"\x04read\x12\x1agateway:upstream:{service}\x1a\x0fgateway-service \x01\x1a \b\x01\x12\x17gateway.upstream.health\x1a\x03low\x82\xd3\xe4\x93\x02!\x12\x1f/v1/gateway/upstreams/{service}\x12\xd9\x01\n" +
-	"\x11GetGatewayVersion\x12$.gateway.v1.GetGatewayVersionRequest\x1a\".gateway.v1.GetGatewayVersionReply\"z\x92\xf4\x18[\b\x04\x1a\x18\b\x01\x12\x0fgateway.version\x1a\x03low2=Gateway version is limited to internal control-plane callers.\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/gateway/versionB$Z\"aisphere-gateway/api/gateway/v1;v1b\x06proto3"
+	"\x11GetGatewayVersion\x12$.gateway.v1.GetGatewayVersionRequest\x1a\".gateway.v1.GetGatewayVersionReply\"z\x92\xf4\x18[\b\x04\x1a\x18\b\x01\x12\x0fgateway.version\x1a\x03low2=Gateway version is limited to internal control-plane callers.\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/gateway/versionB:Z8github.com/aisphereio/aisphere-gateway/api/gateway/v1;v1b\x06proto3"
 
 var (
 	file_gateway_v1_gateway_proto_rawDescOnce sync.Once

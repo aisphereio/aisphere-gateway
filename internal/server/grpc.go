@@ -1,9 +1,9 @@
 package server
 
 import (
-	v1 "aisphere-gateway/api/gateway/v1"
-	"aisphere-gateway/internal/conf"
-	"aisphere-gateway/internal/service"
+	v1 "github.com/aisphereio/aisphere-gateway/api/gateway/v1"
+	"github.com/aisphereio/aisphere-gateway/internal/conf"
+	"github.com/aisphereio/aisphere-gateway/internal/service"
 	"github.com/aisphereio/kernel/logx"
 	"github.com/aisphereio/kernel/metricsx"
 	kgrpc "github.com/aisphereio/kernel/transportx/grpc"

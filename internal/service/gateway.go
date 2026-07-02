@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	v1 "aisphere-gateway/api/gateway/v1"
+	v1 "github.com/aisphereio/aisphere-gateway/api/gateway/v1"
 
 	"github.com/aisphereio/kernel/gatewayx"
 	"google.golang.org/protobuf/types/known/timestamppb"

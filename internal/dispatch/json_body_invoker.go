@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strconv"
 
-	iamv1 "aisphere-iam/api/iam/v1"
+	iamv1 "github.com/aisphereio/aisphere-iam/api/iam/v1"
 	"github.com/aisphereio/kernel/errorx"
 	"github.com/aisphereio/kernel/gatewayx"
 	"google.golang.org/protobuf/encoding/protojson"

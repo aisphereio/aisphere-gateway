@@ -1,8 +1,22 @@
-# Aisphere Kernel Layout
+# Aisphere Gateway
 
-Standalone full-feature service layout for `github.com/aisphereio/kernel/cmd/kernel`.
+Aisphere Gateway is the Kernel-based boundary gateway for Aisphere services.
 
-Default mode is **full**: config, logging, metrics, DB/cache/object storage wiring, audit, DTM, HTTP/gRPC transports, proto-first Todo CRUD, and governance code generation examples.
+Gateway routes are contract-driven. Business services publish generated Gateway manifests from their proto definitions; Gateway reads the route registry and dispatches requests through generated invokers.
+
+## Local development
+
+When changing Kernel generators together with this repository, install tools from a local sibling checkout:
+
+```powershell
+make tools-local KERNEL_LOCAL=../kernel
+make api
+make proto-check
+make test
+make run
+```
+
+For the released Kernel version, use the original generated-layout workflow below.
 
 Use MVP when you want the smallest runnable service skeleton:
 

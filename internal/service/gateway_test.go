@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	v1 "aisphere-gateway/api/gateway/v1"
+	v1 "github.com/aisphereio/aisphere-gateway/api/gateway/v1"
 
 	accessv1 "github.com/aisphereio/kernel/api/aisphere/access/v1"
 	"github.com/aisphereio/kernel/gatewayx"

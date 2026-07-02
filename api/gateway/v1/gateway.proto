@@ -6,7 +6,7 @@ import "aisphere/access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "aisphere-gateway/api/gateway/v1;v1";
+option go_package = "github.com/aisphereio/aisphere-gateway/api/gateway/v1;v1";
 
 service GatewayAdminService {
   rpc GetRouteSnapshot(GetRouteSnapshotRequest) returns (GetRouteSnapshotReply) {
