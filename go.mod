@@ -3,7 +3,7 @@ module github.com/aisphereio/aisphere-gateway
 go 1.25.8
 
 require (
-	github.com/aisphereio/kernel v0.1.18
+	github.com/aisphereio/kernel v0.2.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260511170946-3700d4141b60
 	google.golang.org/grpc v1.81.1
