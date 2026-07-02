@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package gateway.v1;
+
+import "aisphere/access/v1/access.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "aisphere-gateway/api/gateway/v1;v1";
+
+service GatewayAdminService {
+  rpc GetRouteSnapshot(GetRouteSnapshotRequest) returns (GetRouteSnapshotReply) {
+    option (google.api.http) = { get: "/v1/gateway/routes" };
+    option (aisphere.access.v1.policy) = {
+      exposure: SYSTEM
+      authz: { action: "read" resource: "gateway:routes" audience: "gateway-service" mode: CHECK_ONLY }
+      audit: { enabled: true event: "gateway.routes.snapshot" risk: "low" }
+    };
+  }
+
+  rpc ReloadRoutes(ReloadRoutesRequest) returns (ReloadRoutesReply) {
+    option (google.api.http) = { post: "/v1/gateway/routes/reload" body: "*" };
+    option (aisphere.access.v1.policy) = {
+      exposure: SYSTEM
+      authz: { action: "reload" resource: "gateway:routes" audience: "gateway-service" mode: CHECK_ONLY }
+      audit: { enabled: true event: "gateway.routes.reload" risk: "medium" }
+    };
+  }
+
+  rpc GetUpstreamHealth(GetUpstreamHealthRequest) returns (GetUpstreamHealthReply) {
+    option (google.api.http) = { get: "/v1/gateway/upstreams/{service}" };
+    option (aisphere.access.v1.policy) = {
+      exposure: SYSTEM
+      authz: { action: "read" resource: "gateway:upstream:{service}" audience: "gateway-service" mode: CHECK_ONLY }
+      audit: { enabled: true event: "gateway.upstream.health" risk: "low" }
+    };
+  }
+
+  rpc GetGatewayVersion(GetGatewayVersionRequest) returns (GetGatewayVersionReply) {
+    option (google.api.http) = { get: "/v1/gateway/version" };
+    option (aisphere.access.v1.policy) = {
+      exposure: INTERNAL
+      audit: { enabled: true event: "gateway.version" risk: "low" }
+      reason: "Gateway version is limited to internal control-plane callers."
+    };
+  }
+}
+
+message GetRouteSnapshotRequest {}
+
+message GetRouteSnapshotReply {
+  string revision = 1;
+  string source = 2;
+  google.protobuf.Timestamp generated_at = 3;
+  repeated Route routes = 4;
+  repeated string warnings = 5;
+}
+
+message ReloadRoutesRequest {
+  string source = 1;
+  string namespace = 2;
+  bool dry_run = 3;
+  bool force = 4;
+}
+
+message ReloadRoutesReply {
+  int32 route_count = 1;
+  string revision = 2;
+  bool changed = 3;
+  repeated string warnings = 4;
+}
+
+message GetUpstreamHealthRequest {
+  string service = 1;
+  string namespace = 2;
+}
+
+message GetUpstreamHealthReply {
+  string service = 1;
+  string namespace = 2;
+  string status = 3;
+  repeated UpstreamEndpoint endpoints = 4;
+}
+
+message GetGatewayVersionRequest {}
+
+message GetGatewayVersionReply {
+  string name = 1;
+  string version = 2;
+}
+
+message Route {
+  string id = 1;
+  string name = 2;
+  string method = 3;
+  string path = 4;
+  string exposure = 5;
+  string authn_mode = 6;
+  Upstream upstream = 7;
+  map<string, string> labels = 8;
+}
+
+message Upstream {
+  string service = 1;
+  string namespace = 2;
+  int32 port = 3;
+  string protocol = 4;
+  string operation = 5;
+}
+
+message UpstreamEndpoint {
+  string target = 1;
+  int32 port = 2;
+  string status = 3;
+  string reason = 4;
+}
