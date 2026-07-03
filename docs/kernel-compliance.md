@@ -47,7 +47,7 @@ protoc-gen-go-gateway
 - [ ] proto `go_package` 是完整 GitHub module path。
 - [ ] `make api` 后不存在 undefined generated resolver。
 - [ ] Gateway admin API 的 proto policy 能生成 request/access resolver。
-- [ ] README 写清楚 IAM/Gateway 启动顺序。
+- [x] README 写清楚 IAM/Gateway 启动顺序（见 `docs/run-local.md`）。
 
 ## 不允许的回退
 

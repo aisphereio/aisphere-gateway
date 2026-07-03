@@ -1,94 +1,80 @@
 # Aisphere Gateway
 
-Aisphere Gateway is the Kernel-based boundary gateway for Aisphere services.
+Aisphere Gateway 是基于 `github.com/aisphereio/kernel` 的边界网关服务。它读取 route registry，将外部 HTTP 请求分发到后端业务服务（IAM、Hub 等），并处理边界准入（PUBLIC/INTERNAL/AUTHENTICATED）。
 
-Gateway routes are contract-driven. Business services publish generated Gateway manifests from their proto definitions; Gateway reads the route registry and dispatches requests through generated invokers.
+## 架构
 
-## Local development
+```text
+外部请求
+  -> Gateway HTTP server
+  -> route matcher (读取 route registry)
+  -> 边界准入 (PUBLIC / INTERNAL / AUTHENTICATED)
+  -> generated upstream invoker (gRPC 转发到后端)
+  -> 后端服务
+```
 
-When changing Kernel generators together with this repository, install tools from a local sibling checkout:
+Gateway **不做** 资源级最终授权，不手写业务路由表，不直接暴露 INTERNAL 路由。
+
+## 本地开发
 
 ```powershell
+# 安装工具链（使用本地 kernel 开发时）
 make tools-local KERNEL_LOCAL=../kernel
+
+# 生成 API 代码
 make api
+
+# 检查 proto
 make proto-check
+
+# 运行测试
 make test
+
+# 启动服务
 make run
 ```
 
-For the released Kernel version, use the original generated-layout workflow below.
-
-Use MVP when you want the smallest runnable service skeleton:
+## 本地运行
 
 ```powershell
-kernel new skill-service --mvp
+go run ./cmd/aisphere-gateway -conf ./configs/config.local.yaml
 ```
 
-Use feature disable when you want to remove optional layout parts:
+默认端口：
 
-```powershell
-kernel new skill-service --disable iam
-kernel new skill-service --disable gateway,dtmx
-```
-
-## Use
-
-```powershell
-go install github.com/aisphereio/kernel/cmd/kernel@latest
-kernel new skill-service
-cd skill-service
-make tools
-make api
-make proto-check
-make test
-make run
-```
-
-## Included defaults
-
-- Features: `dbx,cachex,objectstorex,authn,authz,auditx,metricsx,logx,configx`
-- Disabled features: `__KERNEL_DISABLED_FEATURES__`
-- Profile: `__KERNEL_PROFILE__`
-- DB: `dbx` with `postgres`
-- Cache: `cachex` with `redis`
-- Object storage: `objectstorex` with `minio`
-- Authn: `casdoor`
-- Authz: `spicedb`
-- Audit: `auditx` memory recorder by default
-- Logging: `logx` console output for local development
-- Metrics: shared `metricsx.Manager`, optional admin `/metrics` server
-- DTM: optional `dtmx.Manager`
-- Config: `configx` file source
-- Transports: Kernel HTTP and gRPC servers with access log and metrics hooks
-- API example: protobuf-first Todo CRUD with HTTP binding and optional governance annotations
-- Kernel version for generated Makefile tools: `__KERNEL_VERSION__`
-
-External dependencies are present in `configs/config.yaml`, but DB, cache, object storage, authn, authz, and DTM are disabled by default so the service starts without local Postgres, Redis, Minio, Casdoor, SpiceDB, or DTM.
+- HTTP: `0.0.0.0:18000`
+- gRPC admin: `0.0.0.0:19000`
+- Metrics: `127.0.0.1:19100`
 
 ## Layout
 
 ```text
-api/                 Protobuf APIs and generated HTTP/gRPC bindings
-cmd/server/          Application entrypoint, renamed to cmd/<service> by kernel new
-configs/             Local config with Kernel module defaults
-internal/conf/        Config DTOs scanned by configx
-internal/server/      Kernel HTTP and gRPC server construction
-internal/service/     Transport-facing Todo service
-internal/biz/         Use cases, domain contracts, errorx errors
-internal/data/        Repositories and Kernel resource initialization
-.kernel/              Layout profile/feature overlays consumed by kernel new
+cmd/aisphere-gateway/    Application entrypoint
+configs/                 Local config files
+internal/conf/           Config DTOs scanned by configx
+internal/data/           Kernel resource initialization (DB, Cache, Authn, Authz)
+internal/dispatch/       JSON body invoker + IAM message factory
+internal/registry/       Route registry client (etcd)
+internal/server/         Kernel HTTP and gRPC server construction
+internal/service/        Gateway admin service (route snapshot, reload, health, version)
 ```
 
-## Generate
+## 当前技术债
+
+当前 `main.go` 编译期绑定了 IAM 的 gRPC invoker 和 message factory。这是过渡实现，后续 Kernel 的 `protoc-gen-go-gateway` 补齐后，Gateway 只注册 generated modules，不再关心具体业务 RPC。
+
+详见 `docs/kernel-compliance.md` 和 `docs/dispatch-limitations.md`。
+
+## 验证
 
 ```bash
-make tools
-make api
-make proto-check
+curl http://127.0.0.1:18000/healthz
+curl http://127.0.0.1:18000/readyz
+curl http://127.0.0.1:18000/v1/gateway/routes
 ```
 
-## Verify
+## 依赖
 
-```bash
-make verify
-```
+- `github.com/aisphereio/kernel` — 核心框架
+- `github.com/aisphereio/aisphere-iam` — IAM 服务（编译期绑定 gRPC invoker）
+- etcd — route registry 存储
