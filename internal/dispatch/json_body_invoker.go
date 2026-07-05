@@ -97,6 +97,13 @@ func populateQuery(msg proto.Message, rawQuery string) bool {
 		m.OrgId = firstQuery(values, "org_id", m.GetOrgId())
 		m.AppId = firstQuery(values, "app_id", m.GetAppId())
 		return true
+	case *iamv1.BuildLogoutURLRequest:
+		m.PostLogoutRedirectUri = firstQuery(values, "post_logout_redirect_uri", m.GetPostLogoutRedirectUri())
+		m.IdTokenHint = firstQuery(values, "id_token_hint", m.GetIdTokenHint())
+		m.State = firstQuery(values, "state", m.GetState())
+		m.OrgId = firstQuery(values, "org_id", m.GetOrgId())
+		m.AppId = firstQuery(values, "app_id", m.GetAppId())
+		return true
 	case *iamv1.GetMeRequest:
 		m.IncludeProfile = boolQuery(values, "include_profile", m.GetIncludeProfile())
 		return true
