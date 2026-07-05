@@ -7,7 +7,6 @@ import (
 	"github.com/aisphereio/kernel/accessx"
 	"github.com/aisphereio/kernel/auditx"
 	"github.com/aisphereio/kernel/authn"
-	"github.com/aisphereio/kernel/authn/casdoor"
 	"github.com/aisphereio/kernel/authz"
 	"github.com/aisphereio/kernel/authz/spicedb"
 	"github.com/aisphereio/kernel/cachex"
@@ -19,6 +18,7 @@ import (
 	"github.com/aisphereio/kernel/metricsx"
 	"github.com/aisphereio/kernel/objectstorex"
 	_ "github.com/aisphereio/kernel/objectstorex/minio"
+	"github.com/aisphereio/kernel/securityx"
 
 	"github.com/aisphereio/aisphere-gateway/internal/conf"
 )
@@ -30,14 +30,15 @@ type ResourceOptions struct {
 }
 
 type Resources struct {
-	DB          dbx.DB
-	Cache       cachex.Cache
-	ObjectStore objectstorex.Client
-	Audit       auditx.Recorder
-	Authn       authn.Authenticator
-	Authz       authz.Authorizer
-	Access      accessx.Guard
-	DTM         dtmx.Manager
+	DB           dbx.DB
+	Cache        cachex.Cache
+	ObjectStore  objectstorex.Client
+	Audit        auditx.Recorder
+	Authn        authn.Authenticator
+	AuthnRuntime *securityx.AuthnBoundaryRuntime
+	Authz        authz.Authorizer
+	Access       accessx.Guard
+	DTM          dtmx.Manager
 
 	closers []func() error
 }
@@ -46,7 +47,7 @@ type Data struct {
 	Resources *Resources
 }
 
-func NewResources(ctx context.Context, cfg conf.Bootstrap, opts ResourceOptions) (*Resources, func(), error) {
+func NewResources(ctx context.Context, bc conf.Bootstrap, opts ResourceOptions) (*Resources, func(), error) {
 	logger := opts.Logger
 	if logger == nil {
 		logger = logx.DefaultLogger()
@@ -58,18 +59,18 @@ func NewResources(ctx context.Context, cfg conf.Bootstrap, opts ResourceOptions)
 		Authz: authz.DenyAll(),
 		DTM:   dtmx.FromContextOr(ctx, opts.DTM),
 	}
-	if !cfg.Audit.Enabled {
+	if !bc.Audit.Enabled {
 		r.Audit = auditx.Noop()
 	}
-	if cfg.Security.Authz.DevAllowAll {
+	if bc.Security.Authz.DevAllowAll {
 		r.Authz = authz.AllowAllForDevOnly()
 	}
 
-	if cfg.Data.Database.Enabled {
-		dbCfg := cfg.Data.Database.Config
+	if bc.Data.Database.Enabled {
+		dbCfg := bc.Data.Database.Config
 		dbCfg.Logger = logger.Named("data.dbx")
 		dbCfg.Metrics = metrics
-		dbCfg.MetricsEnabled = dbCfg.MetricsEnabled && cfg.Metrics.Enabled
+		dbCfg.MetricsEnabled = dbCfg.MetricsEnabled && bc.Metrics.Enabled
 		db, err := dbx.New(dbCfg)
 		if err != nil {
 			return nil, nil, err
@@ -77,11 +78,11 @@ func NewResources(ctx context.Context, cfg conf.Bootstrap, opts ResourceOptions)
 		r.DB = db
 		r.closers = append(r.closers, db.Close)
 	}
-	if cfg.Data.Cache.Enabled {
-		cacheCfg := cfg.Data.Cache.Config
+	if bc.Data.Cache.Enabled {
+		cacheCfg := bc.Data.Cache.Config
 		cacheCfg.Logger = logger.Named("data.cachex")
 		cacheCfg.Metrics = metrics
-		cacheCfg.MetricsEnabled = cacheCfg.MetricsEnabled && cfg.Metrics.Enabled
+		cacheCfg.MetricsEnabled = cacheCfg.MetricsEnabled && bc.Metrics.Enabled
 		cache, err := cachex.New(cacheCfg)
 		if err != nil {
 			r.Close()
@@ -90,11 +91,11 @@ func NewResources(ctx context.Context, cfg conf.Bootstrap, opts ResourceOptions)
 		r.Cache = cache
 		r.closers = append(r.closers, cache.Close)
 	}
-	if cfg.Data.ObjectStore.Enabled {
-		storeCfg := cfg.Data.ObjectStore.Config
+	if bc.Data.ObjectStore.Enabled {
+		storeCfg := bc.Data.ObjectStore.Config
 		storeCfg.Logger = logger.Named("data.objectstorex")
 		storeCfg.Metrics = metrics
-		storeCfg.MetricsEnabled = storeCfg.MetricsEnabled && cfg.Metrics.Enabled
+		storeCfg.MetricsEnabled = storeCfg.MetricsEnabled && bc.Metrics.Enabled
 		store, err := objectstorex.New(storeCfg)
 		if err != nil {
 			r.Close()
@@ -103,16 +104,29 @@ func NewResources(ctx context.Context, cfg conf.Bootstrap, opts ResourceOptions)
 		r.ObjectStore = store
 		r.closers = append(r.closers, store.Close)
 	}
-	if cfg.Security.Authn.Enabled {
-		authenticator, err := newAuthenticator(cfg.Security.Authn, logger, metrics, cfg.Metrics.Enabled)
-		if err != nil {
-			r.Close()
-			return nil, nil, err
+
+// Authn: use Kernel auto-wiring framework (securityx.NewAuthnBoundaryRuntime).
+		// This replaces the manual OIDC/JWKS verifier construction. The runtime
+		// supports casdoor_jwt, gateway_trusted and hybrid modes.
+		if bc.Security.Authn.Enabled {
+			runtime, err := securityx.NewAuthnBoundaryRuntime(ctx, securityx.AuthnBoundaryConfig{
+				Enabled:      bc.Security.Authn.Enabled,
+				Mode:         firstNonEmpty(bc.Security.Authn.Mode, securityx.AuthnModeCasdoorJWT),
+				Provider:     bc.Security.Authn.Provider,
+				OIDC:         bc.Security.Authn.OIDC,
+				InternalCall: bc.Security.InternalCall,
+				CacheTTL:     bc.Security.Authn.CacheTTL,
+			}, r.Cache)
+			if err != nil {
+				r.Close()
+				return nil, nil, err
+			}
+			r.AuthnRuntime = runtime
+			r.Authn = runtime.Authenticator
 		}
-		r.Authn = authenticator
-	}
-	if cfg.Security.Authz.Enabled && !cfg.Security.Authz.DevAllowAll {
-		authorizer, closeFn, err := newAuthorizer(cfg.Security.Authz, logger, metrics, cfg.Metrics.Enabled)
+
+	if bc.Security.Authz.Enabled && !bc.Security.Authz.DevAllowAll {
+		authorizer, closeFn, err := newAuthorizer(bc.Security.Authz, logger, metrics, bc.Metrics.Enabled)
 		if err != nil {
 			r.Close()
 			return nil, nil, err
@@ -129,19 +143,6 @@ func NewResources(ctx context.Context, cfg conf.Bootstrap, opts ResourceOptions)
 
 func NewData(resources *Resources) *Data {
 	return &Data{Resources: resources}
-}
-
-func newAuthenticator(cfg conf.AuthnConfig, logger logx.Logger, metrics metricsx.Manager, metricsEnabled bool) (authn.Authenticator, error) {
-	switch cfg.Provider {
-	case "", "casdoor":
-		casdoorCfg := cfg.Casdoor
-		casdoorCfg.Logger = logger.Named("authn.casdoor")
-		casdoorCfg.Metrics = metrics
-		casdoorCfg.MetricsEnabled = casdoorCfg.MetricsEnabled && metricsEnabled
-		return casdoor.New(casdoorCfg)
-	default:
-		return nil, errors.New("unsupported authn provider: " + cfg.Provider)
-	}
 }
 
 func newAuthorizer(cfg conf.AuthzConfig, logger logx.Logger, metrics metricsx.Manager, metricsEnabled bool) (authz.Authorizer, func() error, error) {
@@ -173,6 +174,15 @@ func pingEnabled(ctx context.Context, r *Resources) error {
 		}
 	}
 	return nil
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func (r *Resources) Close() error {

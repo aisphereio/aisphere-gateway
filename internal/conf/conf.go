@@ -3,7 +3,10 @@ package conf
 import (
 	"time"
 
+	"github.com/aisphereio/kernel/accessx"
+	"github.com/aisphereio/kernel/authn"
 	"github.com/aisphereio/kernel/authn/casdoor"
+	"github.com/aisphereio/kernel/authn/oidcx"
 	"github.com/aisphereio/kernel/authz/spicedb"
 	"github.com/aisphereio/kernel/cachex"
 	"github.com/aisphereio/kernel/dbx"
@@ -69,14 +72,30 @@ type ObjectStoreConfig struct {
 }
 
 type SecurityConfig struct {
-	Authn AuthnConfig `json:"authn" yaml:"authn"`
-	Authz AuthzConfig `json:"authz" yaml:"authz"`
+	Authn        AuthnConfig                      `json:"authn" yaml:"authn"`
+	Authz        AuthzConfig                      `json:"authz" yaml:"authz"`
+	Access       accessx.AccessConfig             `json:"access" yaml:"access"`
+	InternalCall authn.InternalServiceTokenConfig `json:"internal_call" yaml:"internal_call"`
 }
 
 type AuthnConfig struct {
-	Enabled  bool           `json:"enabled" yaml:"enabled"`
-	Provider string         `json:"provider" yaml:"provider"`
-	Casdoor  casdoor.Config `json:"casdoor" yaml:"casdoor"`
+	Enabled  bool   `json:"enabled" yaml:"enabled"`
+	Mode     string `json:"mode" yaml:"mode"`
+	Provider string `json:"provider" yaml:"provider"`
+
+	// OIDC is the provider-neutral JWT verification config used by Gateway.
+	// For Casdoor deployments, provider=casdoor can either fill this section or
+	// reuse the legacy casdoor section below.
+	OIDC oidcx.Config `json:"oidc" yaml:"oidc"`
+
+	// Casdoor remains for compatibility with existing configs and IAM-style
+	// hosted login/token exchange. Gateway verification maps these fields into
+	// OIDC and does not require client_secret.
+	Casdoor casdoor.Config `json:"casdoor" yaml:"casdoor"`
+
+	// CacheTTL enables token->principal verification-result cache when data.cache
+	// is enabled. TTL is always capped by token exp. Zero uses Kernel default.
+	CacheTTL time.Duration `json:"cache_ttl_ns" yaml:"cache_ttl_ns"`
 }
 
 type AuthzConfig struct {

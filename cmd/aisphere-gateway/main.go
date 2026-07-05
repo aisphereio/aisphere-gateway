@@ -24,6 +24,9 @@ import (
 	"github.com/aisphereio/aisphere-gateway/internal/registry"
 	"github.com/aisphereio/aisphere-gateway/internal/server"
 	"github.com/aisphereio/aisphere-gateway/internal/service"
+	grantv1 "github.com/aisphereio/aisphere-iam/api/iam/grant/v1"
+	projectv1 "github.com/aisphereio/aisphere-iam/api/iam/project/v1"
+	resourcev1 "github.com/aisphereio/aisphere-iam/api/iam/resource/v1"
 	iamv1 "github.com/aisphereio/aisphere-iam/api/iam/v1"
 )
 
@@ -110,25 +113,65 @@ func main() {
 		_ = iamv1.RegisterIAMAuthServiceGatewayInvokers(invokers, iamv1.NewIAMAuthServiceClient(iamConn))
 		_ = iamv1.RegisterIAMDirectoryServiceGatewayInvokers(invokers, iamv1.NewIAMDirectoryServiceClient(iamConn))
 		_ = iamv1.RegisterIAMPermissionServiceGatewayInvokers(invokers, iamv1.NewIAMPermissionServiceClient(iamConn))
+		_ = projectv1.RegisterProjectServiceGatewayInvokers(invokers, projectv1.NewProjectServiceClient(iamConn))
+		_ = resourcev1.RegisterResourceServiceGatewayInvokers(invokers, resourcev1.NewResourceServiceClient(iamConn))
+		_ = grantv1.RegisterGrantServiceGatewayInvokers(invokers, grantv1.NewGrantServiceClient(iamConn))
 	}
 	bodyInvoker := dispatch.NewJSONBodyInvoker(invokers, map[string]dispatch.MessageFactory{
-		"/iam.v1.IAMAuthService/BuildLoginURL":            func() proto.Message { return &iamv1.BuildLoginURLRequest{} },
-		"/iam.v1.IAMAuthService/ExchangeCode":             func() proto.Message { return &iamv1.ExchangeCodeRequest{} },
-		"/iam.v1.IAMAuthService/RefreshToken":             func() proto.Message { return &iamv1.RefreshTokenRequest{} },
-		"/iam.v1.IAMAuthService/VerifyToken":              func() proto.Message { return &iamv1.VerifyTokenRequest{} },
-		"/iam.v1.IAMAuthService/RevokeToken":              func() proto.Message { return &iamv1.RevokeTokenRequest{} },
-		"/iam.v1.IAMAuthService/GetMe":                    func() proto.Message { return &iamv1.GetMeRequest{} },
-		"/iam.v1.IAMDirectoryService/GetUser":             func() proto.Message { return &iamv1.GetUserRequest{} },
-		"/iam.v1.IAMDirectoryService/ListUsers":           func() proto.Message { return &iamv1.ListUsersRequest{} },
-		"/iam.v1.IAMDirectoryService/GetOrganization":     func() proto.Message { return &iamv1.GetOrganizationRequest{} },
-		"/iam.v1.IAMDirectoryService/ListGroups":          func() proto.Message { return &iamv1.ListGroupsRequest{} },
-		"/iam.v1.IAMPermissionService/CheckPermission":    func() proto.Message { return &iamv1.CheckPermissionRequest{} },
-		"/iam.v1.IAMPermissionService/WriteRelationship":  func() proto.Message { return &iamv1.WriteRelationshipRequest{} },
-		"/iam.v1.IAMPermissionService/DeleteRelationship": func() proto.Message { return &iamv1.DeleteRelationshipRequest{} },
-		"/iam.v1.IAMPermissionService/LookupResources":    func() proto.Message { return &iamv1.LookupResourcesRequest{} },
-		"/iam.v1.IAMPermissionService/LookupSubjects":     func() proto.Message { return &iamv1.LookupSubjectsRequest{} },
+		"/iam.v1.IAMAuthService/BuildLoginURL":                          func() proto.Message { return &iamv1.BuildLoginURLRequest{} },
+		"/iam.v1.IAMAuthService/ExchangeCode":                           func() proto.Message { return &iamv1.ExchangeCodeRequest{} },
+		"/iam.v1.IAMAuthService/RefreshToken":                           func() proto.Message { return &iamv1.RefreshTokenRequest{} },
+		"/iam.v1.IAMAuthService/VerifyToken":                            func() proto.Message { return &iamv1.VerifyTokenRequest{} },
+		"/iam.v1.IAMAuthService/RevokeToken":                            func() proto.Message { return &iamv1.RevokeTokenRequest{} },
+		"/iam.v1.IAMAuthService/GetMe":                                  func() proto.Message { return &iamv1.GetMeRequest{} },
+		"/iam.v1.IAMDirectoryService/GetUser":                           func() proto.Message { return &iamv1.GetUserRequest{} },
+		"/iam.v1.IAMDirectoryService/ListUsers":                         func() proto.Message { return &iamv1.ListUsersRequest{} },
+		"/iam.v1.IAMDirectoryService/GetOrganization":                   func() proto.Message { return &iamv1.GetOrganizationRequest{} },
+		"/iam.v1.IAMDirectoryService/ListGroups":                        func() proto.Message { return &iamv1.ListGroupsRequest{} },
+		"/iam.v1.IAMPermissionService/CheckPermission":                  func() proto.Message { return &iamv1.CheckPermissionRequest{} },
+		"/iam.v1.IAMPermissionService/WriteRelationship":                func() proto.Message { return &iamv1.WriteRelationshipRequest{} },
+		"/iam.v1.IAMPermissionService/DeleteRelationship":               func() proto.Message { return &iamv1.DeleteRelationshipRequest{} },
+		"/iam.v1.IAMPermissionService/LookupResources":                  func() proto.Message { return &iamv1.LookupResourcesRequest{} },
+		"/iam.v1.IAMPermissionService/LookupSubjects":                   func() proto.Message { return &iamv1.LookupSubjectsRequest{} },
+		"/iam.project.v1.ProjectService/CreateOrganization":             func() proto.Message { return &projectv1.CreateOrganizationRequest{} },
+		"/iam.project.v1.ProjectService/GetOrganization":                func() proto.Message { return &projectv1.GetOrganizationRequest{} },
+		"/iam.project.v1.ProjectService/ListOrganizations":              func() proto.Message { return &projectv1.ListOrganizationsRequest{} },
+		"/iam.project.v1.ProjectService/UpdateOrganization":             func() proto.Message { return &projectv1.UpdateOrganizationRequest{} },
+		"/iam.project.v1.ProjectService/CreateProject":                  func() proto.Message { return &projectv1.CreateProjectRequest{} },
+		"/iam.project.v1.ProjectService/GetProject":                     func() proto.Message { return &projectv1.GetProjectRequest{} },
+		"/iam.project.v1.ProjectService/ListProjects":                   func() proto.Message { return &projectv1.ListProjectsRequest{} },
+		"/iam.project.v1.ProjectService/UpdateProject":                  func() proto.Message { return &projectv1.UpdateProjectRequest{} },
+		"/iam.project.v1.ProjectService/ArchiveProject":                 func() proto.Message { return &projectv1.ArchiveProjectRequest{} },
+		"/iam.project.v1.ProjectService/RegisterCapability":             func() proto.Message { return &projectv1.RegisterCapabilityRequest{} },
+		"/iam.project.v1.ProjectService/ListCapabilities":               func() proto.Message { return &projectv1.ListCapabilitiesRequest{} },
+		"/iam.project.v1.ProjectService/EnableProjectCapability":        func() proto.Message { return &projectv1.EnableProjectCapabilityRequest{} },
+		"/iam.project.v1.ProjectService/DisableProjectCapability":       func() proto.Message { return &projectv1.DisableProjectCapabilityRequest{} },
+		"/iam.project.v1.ProjectService/ListProjectCapabilities":        func() proto.Message { return &projectv1.ListProjectCapabilitiesRequest{} },
+		"/iam.resource.v1.ResourceService/RegisterResourceType":         func() proto.Message { return &resourcev1.RegisterResourceTypeRequest{} },
+		"/iam.resource.v1.ResourceService/GetResourceType":              func() proto.Message { return &resourcev1.GetResourceTypeRequest{} },
+		"/iam.resource.v1.ResourceService/ListResourceTypes":            func() proto.Message { return &resourcev1.ListResourceTypesRequest{} },
+		"/iam.resource.v1.ResourceService/UpsertResource":               func() proto.Message { return &resourcev1.UpsertResourceRequest{} },
+		"/iam.resource.v1.ResourceService/GetResource":                  func() proto.Message { return &resourcev1.GetResourceRequest{} },
+		"/iam.resource.v1.ResourceService/ListResources":                func() proto.Message { return &resourcev1.ListResourcesRequest{} },
+		"/iam.resource.v1.ResourceService/MoveResource":                 func() proto.Message { return &resourcev1.MoveResourceRequest{} },
+		"/iam.resource.v1.ResourceService/ArchiveResource":              func() proto.Message { return &resourcev1.ArchiveResourceRequest{} },
+		"/iam.resource.v1.ResourceService/DeleteResource":               func() proto.Message { return &resourcev1.DeleteResourceRequest{} },
+		"/iam.resource.v1.ResourceService/BindResource":                 func() proto.Message { return &resourcev1.BindResourceRequest{} },
+		"/iam.resource.v1.ResourceService/UnbindResource":               func() proto.Message { return &resourcev1.UnbindResourceRequest{} },
+		"/iam.resource.v1.ResourceService/ListResourceBindings":         func() proto.Message { return &resourcev1.ListResourceBindingsRequest{} },
+		"/iam.resource.v1.ResourceService/BindExternalResource":         func() proto.Message { return &resourcev1.BindExternalResourceRequest{} },
+		"/iam.resource.v1.ResourceService/ListExternalResourceBindings": func() proto.Message { return &resourcev1.ListExternalResourceBindingsRequest{} },
+		"/iam.grant.v1.GrantService/RegisterRoleTemplate":               func() proto.Message { return &grantv1.RegisterRoleTemplateRequest{} },
+		"/iam.grant.v1.GrantService/ListRoleTemplates":                  func() proto.Message { return &grantv1.ListRoleTemplatesRequest{} },
+		"/iam.grant.v1.GrantService/GrantAccess":                        func() proto.Message { return &grantv1.GrantAccessRequest{} },
+		"/iam.grant.v1.GrantService/RevokeAccess":                       func() proto.Message { return &grantv1.RevokeAccessRequest{} },
+		"/iam.grant.v1.GrantService/ListGrants":                         func() proto.Message { return &grantv1.ListGrantsRequest{} },
+		"/iam.grant.v1.GrantService/ExplainAccess":                      func() proto.Message { return &grantv1.ExplainAccessRequest{} },
 	})
-	dispatcher := gatewayx.NewDispatcher(routeRegistry, hosts, bodyInvoker)
+	dispatcher := gatewayx.NewDispatcher(routeRegistry, hosts, bodyInvoker,
+		gatewayx.WithAuthenticator(resources.Authn),
+		gatewayx.WithInternalServiceToken(bc.Security.InternalCall),
+	)
 	adminService := service.NewGatewayAdminService(service.GatewayAdminDeps{
 		Registry: routeRegistry,
 		Hosts:    hosts,

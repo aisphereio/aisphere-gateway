@@ -51,7 +51,49 @@ data:
 
 security:
   authn:
-    enabled: false
+    enabled: true
+    mode: casdoor_jwt
+    provider: casdoor
+    cache_ttl_ns: 300000000000
+    oidc:
+      provider: casdoor
+      issuer: http://36.137.200.194:30082
+      discovery_url: http://36.137.200.194:30082/.well-known/openid-configuration
+      jwks_url: http://36.137.200.194:30082/.well-known/jwks
+      audience: [bbdcfc272e2b990cb923]
+      allowed_owners: [aisphere]
+      allowed_algs: [RS256, RS512, ES256, ES512]
+      jwks_cache_ttl_ns: 600000000000
+      clock_skew_ns: 60000000000
+    casdoor:
+      endpoint: http://36.137.200.194:30082
+      issuer: http://36.137.200.194:30082
+      discovery_url: http://36.137.200.194:30082/.well-known/openid-configuration
+      jwks_url: http://36.137.200.194:30082/.well-known/jwks
+      audience: [bbdcfc272e2b990cb923]
+      allowed_owners: [aisphere]
+      allowed_algs: [RS256, RS512, ES256, ES512]
+      jwks_cache_ttl_ns: 600000000000
+      organization_name: aisphere
+      application_name: aisphere
+      client_id: bbdcfc272e2b990cb923
+      client_secret: "c4d351406d40251b267624328e50e8a1f7352a65"
+      timeout: 10000000000
+      metrics_enabled: true
+  access:
+    # Gateway dispatch authn is route-manifest driven. Keep this canonical
+    # subtree for admin/system routes and shared security config shape.
+    public_operations:
+      - /healthz
+      - /readyz
+    skip_operations: []
+  internal_call:
+    # Gateway -> backend trust boundary. This is not the user token.
+    # Gateway strips any client-supplied copy and injects this value only after
+    # Casdoor JWT validation succeeds. Store the real value in Kubernetes Secret.
+    enabled: true
+    header: X-Aisphere-Internal-Token
+    token: "aisphere-internal-token-2026"
   authz:
     enabled: false
 
@@ -67,8 +109,17 @@ gateway:
     i.a.m.directory-service.aisphere: 127.0.0.1:19080
     i.a.m.permission-service.aisphere: 127.0.0.1:19080
     iam-service.aisphere: 127.0.0.1:19080
+    project-service.aisphere: 127.0.0.1:19080
+    resource-service.aisphere: 127.0.0.1:19080
+    grant-service.aisphere: 127.0.0.1:19080
   upstreams:
     iam-service:
+      target: 127.0.0.1:19080
+    project-service:
+      target: 127.0.0.1:19080
+    resource-service:
+      target: 127.0.0.1:19080
+    grant-service:
       target: 127.0.0.1:19080
 
 audit:
