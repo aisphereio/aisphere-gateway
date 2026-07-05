@@ -115,8 +115,6 @@ security:
       client_secret: "c4d351406d40251b267624328e50e8a1f7352a65"
       timeout: 10000000000
       metrics_enabled: true
-      admin:
-        enabled: false
   access:
     # Gateway dispatch authn is route-manifest driven. Keep this canonical
     # subtree for admin/system routes and shared security config shape.
