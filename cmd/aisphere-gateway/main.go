@@ -124,6 +124,7 @@ func main() {
 		"/iam.v1.IAMAuthService/VerifyToken":                            func() proto.Message { return &iamv1.VerifyTokenRequest{} },
 		"/iam.v1.IAMAuthService/RevokeToken":                            func() proto.Message { return &iamv1.RevokeTokenRequest{} },
 		"/iam.v1.IAMAuthService/GetMe":                                  func() proto.Message { return &iamv1.GetMeRequest{} },
+		"/iam.v1.IAMAuthService/BuildLogoutURL":                         func() proto.Message { return &iamv1.BuildLogoutURLRequest{} },
 		"/iam.v1.IAMDirectoryService/GetUser":                           func() proto.Message { return &iamv1.GetUserRequest{} },
 		"/iam.v1.IAMDirectoryService/ListUsers":                         func() proto.Message { return &iamv1.ListUsersRequest{} },
 		"/iam.v1.IAMDirectoryService/GetOrganization":                   func() proto.Message { return &iamv1.GetOrganizationRequest{} },
