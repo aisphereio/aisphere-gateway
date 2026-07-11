@@ -117,15 +117,10 @@ func main() {
 		_ = resourcev1.RegisterResourceServiceGatewayInvokers(invokers, resourcev1.NewResourceServiceClient(iamConn))
 		_ = grantv1.RegisterGrantServiceGatewayInvokers(invokers, grantv1.NewGrantServiceClient(iamConn))
 	}
-	bodyInvoker := dispatch.NewJSONBodyInvoker(invokers, map[string]dispatch.MessageFactory{
-		"/iam.v1.IAMAuthService/BuildLoginURL":                          func() proto.Message { return &iamv1.BuildLoginURLRequest{} },
-		"/iam.v1.IAMAuthService/ExchangeCode":                           func() proto.Message { return &iamv1.ExchangeCodeRequest{} },
-		"/iam.v1.IAMAuthService/RefreshToken":                           func() proto.Message { return &iamv1.RefreshTokenRequest{} },
-		"/iam.v1.IAMAuthService/VerifyToken":                            func() proto.Message { return &iamv1.VerifyTokenRequest{} },
-		"/iam.v1.IAMAuthService/RevokeToken":                            func() proto.Message { return &iamv1.RevokeTokenRequest{} },
-		"/iam.v1.IAMAuthService/GetMe":                                  func() proto.Message { return &iamv1.GetMeRequest{} },
-		"/iam.v1.IAMAuthService/BuildLogoutURL":                         func() proto.Message { return &iamv1.BuildLogoutURLRequest{} },
-		"/iam.v1.IAMDirectoryService/GetUser":                           func() proto.Message { return &iamv1.GetUserRequest{} },
+bodyInvoker := dispatch.NewJSONBodyInvoker(invokers, map[string]dispatch.MessageFactory{
+			"/iam.v1.IAMAuthService/VerifyToken":                            func() proto.Message { return &iamv1.VerifyTokenRequest{} },
+			"/iam.v1.IAMAuthService/GetMe":                                  func() proto.Message { return &iamv1.GetMeRequest{} },
+			"/iam.v1.IAMDirectoryService/GetUser":                           func() proto.Message { return &iamv1.GetUserRequest{} },
 		"/iam.v1.IAMDirectoryService/ListUsers":                         func() proto.Message { return &iamv1.ListUsersRequest{} },
 		"/iam.v1.IAMDirectoryService/GetOrganization":                   func() proto.Message { return &iamv1.GetOrganizationRequest{} },
 		"/iam.v1.IAMDirectoryService/ListGroups":                        func() proto.Message { return &iamv1.ListGroupsRequest{} },
